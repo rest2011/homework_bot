@@ -51,7 +51,7 @@ class RequestExceptionError(Exception):
 
 
 class EmptyStatusError(Exception):
-    """Пустой статус"""
+    """Пустой статус."""
 
 
 def check_tokens():
@@ -76,7 +76,7 @@ def check_tokens():
 
 
 def send_message(bot, message):
-    """Отправляем сообщение в Телеграм"""
+    """Отправляем сообщение в Телеграм."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.debug(
@@ -112,6 +112,11 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Проверяем данные в response."""
+    if not isinstance(response, dict):
+        code_api_msg = (
+            'Ошибка ожидаемый тип данных - словарь')
+        logger.error(code_api_msg)
+        raise TypeError(code_api_msg)
     if response.get('homeworks') is None:
         code_api_msg = (
             'Ошибка ключа homeworks или response'
@@ -119,11 +124,6 @@ def check_response(response):
         logger.error(code_api_msg)
         raise EmptyDictionaryOrListError(code_api_msg)
     if not isinstance(response['homeworks'], list):
-        code_api_msg = (
-            'Ошибка для ключа homeworks: данные пришли не в виде списка')
-        logger.error(code_api_msg)
-        raise TypeError(code_api_msg)
-    if isinstance(response.get('homeworks'), dict):
         code_api_msg = (
             'Ошибка ожидаемый тип данных - словарь')
         logger.error(code_api_msg)
@@ -153,13 +153,6 @@ def parse_status(homework):
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
-def extracted_from_parse_status(arg0, arg1):
-    """Создаем сообщение о состоянии статуса."""
-    code_api_msg = f'{arg0}{arg1}'
-    logger.error(code_api_msg)
-    raise UndocumentedStatusError(code_api_msg)
-
-
 def main():
     """Главная функция запуска бота."""
     if not check_tokens():
@@ -169,21 +162,19 @@ def main():
     send_message(
         bot,
         f'Я начал свою работу: {now.strftime("%d-%m-%Y %H:%M")}')
-    # timestamp = datetime.datetime.today() - datetime.timedelta(days=20)
-    timestamp = 0
-    tmp_status = 'reviewing'
+    timestamp = int(0)
+    status = ''
     errors = True
     while True:
         try:
             response = get_api_answer(timestamp)
             homework = check_response(response)
-            if homework and tmp_status != homework['status']:
+            if homework and homework['status'] != status:
                 message = parse_status(homework)
                 send_message(bot, message)
-                tmp_status = homework['status']
+                status = homework['status']
             logger.info(
                 'Изменений нет, ждем 10 минут и проверяем API')
-            print(type(response))
             time.sleep(RETRY_PERIOD)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
