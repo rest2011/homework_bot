@@ -158,30 +158,25 @@ def main():
     if not check_tokens():
         exit()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    now = datetime.datetime.now()
-    send_message(
-        bot,
-        f'Я начал свою работу: {now.strftime("%d-%m-%Y %H:%M")}')
-    timestamp = int(0)
+    send_message(bot, f'Я начал свою работу:'
+                 f'{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}')
+    timestamp = int(time.time())
     status = ''
-    errors = True
     while True:
         try:
             response = get_api_answer(timestamp)
+            timestamp = response.get('current_day', timestamp)
             homework = check_response(response)
             if homework and homework['status'] != status:
-                message = parse_status(homework)
-                send_message(bot, message)
+                send_message(bot, parse_status(homework))
                 status = homework['status']
-            logger.info(
-                'Изменений нет, ждем 10 минут и проверяем API')
-            time.sleep(RETRY_PERIOD)
+            else:
+                logger.info('Изменений нет, ждем 10 минут и проверяем API')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            if errors:
-                errors = False
-                send_message(bot, message)
+            send_message(bot, message)
             logger.critical(message)
+        finally:
             time.sleep(RETRY_PERIOD)
 
 
