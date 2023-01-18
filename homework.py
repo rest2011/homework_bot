@@ -1,11 +1,12 @@
-from dotenv import load_dotenv
 import datetime
 import json
 import logging
 import os
 import requests
-import telegram
 import time
+
+from dotenv import load_dotenv
+import telegram
 
 load_dotenv()
 
@@ -20,18 +21,6 @@ HOMEWORK_VERDICTS = {
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    filename='program.log',
-    filemode='w',
-    format='%(asctime)s - %(levelname)s - %(message)s - %(name)s'
-)
-logger = logging.getLogger(__name__)
-logger.addHandler(
-    logging.StreamHandler()
-)
 
 
 class TheAnswerIsNot200Error(Exception):
@@ -60,18 +49,11 @@ def check_tokens():
         'Программа принудительно остановлена. '
         'Отсутствует обязательная переменная окружения:')
     tokens_bool = True
-    if PRACTICUM_TOKEN is None:
-        tokens_bool = False
-        logger.critical(
-            f'{no_tokens_msg} PRACTICUM_TOKEN')
-    if TELEGRAM_TOKEN is None:
-        tokens_bool = False
-        logger.critical(
-            f'{no_tokens_msg} TELEGRAM_TOKEN')
-    if TELEGRAM_CHAT_ID is None:
-        tokens_bool = False
-        logger.critical(
-            f'{no_tokens_msg} TELEGRAM_CHAT_ID')
+    for token in [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]:
+        if token is None:
+            tokens_bool = False
+            logger.critical(
+                f'{no_tokens_msg} token')
     return tokens_bool
 
 
@@ -181,4 +163,15 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.DEBUG,
+        filename=__file__ + '.log',
+        filemode='w',
+        format='%(asctime)s - %(levelname)s - %(message)s - %(name)s',
+        handlers=[logging.StreamHandler()]
+    )
+    logger = logging.getLogger(__name__)
+    logger.addHandler(
+        logging.StreamHandler()
+    )
     main()
