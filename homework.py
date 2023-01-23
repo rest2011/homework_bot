@@ -22,6 +22,7 @@ HOMEWORK_VERDICTS = {
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
+TOKENS = ['PRACTICUM_TOKEN', 'TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID']
 
 NO_TOKEN_MESSAGE = ('Программа принудительно остановлена. '
                     'Отсутствует обязательная переменная окружения: {token}')
@@ -66,18 +67,9 @@ class StatusNotChange(Exception):
 
 def check_tokens():
     """Проверка наличия токенов."""
-    missed_tokens = []
-    tokens = {'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
-              'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
-              'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID}
-    # почему-то тест не проходит, если использую константу TOKENS.
-    # Если внутри ф-ции словарь, то срабатывает.
-    # Подскажите, пжл, что можно сделать.
-    for key, value in tokens.items():
-        if not value:
-            logger.critical(NO_TOKEN_MESSAGE.format(token=key))
-            missed_tokens.append(key)
-    if len(missed_tokens) > 0:
+    missed_tokens = [token for token in TOKENS if not globals()[token]]
+    if missed_tokens:
+        logger.critical(NO_TOKEN_MESSAGE.format(token=missed_tokens))
         raise ValueError(NO_TOKEN_MESSAGE.format(token=missed_tokens))
 
 
@@ -159,16 +151,14 @@ def main():
         try:
             response = get_api_answer(timestamp)
             homeworks = check_response(response)
-            if homeworks:
-                status = parse_status(homeworks[0])
-                if send_message(bot, status):
-                    timestamp = response.get('current_date', timestamp)
+            if homeworks and send_message(bot, parse_status(homeworks[0])):
+                timestamp = response.get('current_date', timestamp)
         except Exception as error:
             message_error = MAIN_EXCEPTION_ERROR.format(error=error)
             logger.error(message_error, exc_info=True)
-            if message_error != last_error_message:
-                if send_message(bot, message_error):
-                    last_error_message = message_error
+            if (message_error != last_error_message
+                    and send_message(bot, message_error)):
+                last_error_message = message_error
         finally:
             time.sleep(RETRY_PERIOD)
 
