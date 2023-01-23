@@ -22,6 +22,9 @@ HOMEWORK_VERDICTS = {
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
+TOKENS = {'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
+          'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
+          'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID}
 
 NO_TOKEN_MESSAGE = ('Программа принудительно остановлена. '
                     'Отсутствует обязательная переменная окружения: {token}')
@@ -67,16 +70,14 @@ class StatusNotChange(Exception):
 
 def check_tokens():
     """Проверка наличия токенов."""
-    tokens_bool = True
-    tokens = {'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
-              'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
-              'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID}
-    for key, value in tokens.items():
+    missed_tokens = []
+    for key, value in TOKENS.items():
         if not value:
-            tokens_bool = False
+            missed_tokens.append(key)
             logger.critical(NO_TOKEN_MESSAGE.format(token=key))
-            raise ValueError(NO_TOKEN_MESSAGE.format(token=key))
-    return tokens_bool
+    if missed_tokens:
+        raise ValueError(NO_TOKEN_MESSAGE.format(token=missed_tokens))
+    return True
 
 
 def send_message(bot, message):
@@ -84,6 +85,7 @@ def send_message(bot, message):
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.debug(TELEGRAM_MESSAGE_SENT.format(message=message))
+        return True
     except telegram.TelegramError as telegram_error:
         logger.error(TELEGRAM_MESSAGE_NOT_SENT.format(
             message=message, telegram_error=telegram_error
@@ -161,10 +163,10 @@ def main():
                     timestamp = response.get('current_date', timestamp)
         except Exception as error:
             message_error = MAIN_EXCEPTION_ERROR.format(error=error)
+            logger.error(message_error, exc_info=True)
             if message_error != last_error_message:
                 if send_message(bot, message_error):
                     last_error_message = message_error
-            logger.error(message_error, exc_info=True)
         finally:
             time.sleep(RETRY_PERIOD)
 
