@@ -71,7 +71,8 @@ def check_tokens():
               'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
               'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID}
     # почему-то тест не проходит, если использую константу TOKENS.
-    # Если внутри ф-ции словарь, то срабатывает. Подскажите, пжл, что можно сделать.
+    # Если внутри ф-ции словарь, то срабатывает.
+    # Подскажите, пжл, что можно сделать.
     for key, value in tokens.items():
         if not value:
             logger.critical(NO_TOKEN_MESSAGE.format(token=key))
