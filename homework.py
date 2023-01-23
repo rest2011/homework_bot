@@ -22,9 +22,6 @@ HOMEWORK_VERDICTS = {
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-TOKENS = {'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
-          'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
-          'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID}
 
 NO_TOKEN_MESSAGE = ('Программа принудительно остановлена. '
                     'Отсутствует обязательная переменная окружения: {token}')
@@ -46,7 +43,6 @@ CHANGE_HOMEWORK_STATUS = ('Изменился статус проверки ра
 MAIN_EXCEPTION_ERROR = 'Сбой в работе программы: {error}'
 RESPONSE_ERROR = ('В ключе ответа {response_json} есть ошибка {response_error}'
                   '. Переданы параметры {parameters}')
-
 NOCHANGE_HOMEWORK_STATUS = 'Статус домашней работы не изменился'
 
 logger = logging.getLogger(__name__)
@@ -71,13 +67,17 @@ class StatusNotChange(Exception):
 def check_tokens():
     """Проверка наличия токенов."""
     missed_tokens = []
-    for key, value in TOKENS.items():
+    tokens = {'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
+              'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
+              'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID}
+    # почему-то тест не проходит, если использую константу TOKENS.
+    # Если внутри ф-ции словарь, то срабатывает. Подскажите, пжл, что можно сделать.
+    for key, value in tokens.items():
         if not value:
-            missed_tokens.append(key)
             logger.critical(NO_TOKEN_MESSAGE.format(token=key))
-    if missed_tokens:
+            missed_tokens.append(key)
+    if len(missed_tokens) > 0:
         raise ValueError(NO_TOKEN_MESSAGE.format(token=missed_tokens))
-    return True
 
 
 def send_message(bot, message):
@@ -90,6 +90,7 @@ def send_message(bot, message):
         logger.error(TELEGRAM_MESSAGE_NOT_SENT.format(
             message=message, telegram_error=telegram_error
         ), exc_info=True)
+        return False
 
 
 def get_api_answer(timestamp):
