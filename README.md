@@ -15,14 +15,17 @@ https://practicum.yandex.ru/api/user_api/homework_statuses/ и доступ к �
 - работа возвращена для исправления ошибок
 - работа принята
 
+## Технологии
+Python, python-telegram-bot
+
 ## Запуск на ПК
 Клонируем проект:
 ```
-git clone https://github.com/themasterid/homework_bot.git
+git clone https://github.com/rest2011/homework_bot.git
 ```
 или
 ```
-git clone git@github.com:themasterid/homework_bot.git
+git clone git@github.com:rest2011/homework_bot.git
 ```
 Переходим в папку с ботом.
 ```
@@ -43,12 +46,6 @@ deactivate
 Устанавливаем зависимости
 ```
 pip install -r requirements.txt
-```
-В консоли импортируем токены для Яндекс Практикума и для Telegram:
-```
-export PRACTICUM_TOKEN=<PRACTICUM_TOKEN>
-export TELEGRAM_TOKEN=<TELEGRAM_TOKEN>
-export CHAT_ID=<CHAT_ID>
 ```
 Запускаем бота
 ```
