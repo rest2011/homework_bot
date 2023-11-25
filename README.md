@@ -45,10 +45,11 @@ deactivate
 pip install -r requirements.txt
 ```
 В консоли импортируем токены для Яндекс Практикума и для Telegram:
-
+```
 export PRACTICUM_TOKEN=<PRACTICUM_TOKEN>
 export TELEGRAM_TOKEN=<TELEGRAM_TOKEN>
 export CHAT_ID=<CHAT_ID>
+```
 Запускаем бота
 ```
 python homework.py
